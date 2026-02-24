@@ -1,0 +1,33 @@
+name: Code Quality
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: pip
+
+      - name: Install dependencies
+        run: pip install -r requirements-dev.txt
+
+      - name: Run flake8
+        run: flake8 streamlit_app/ tests/ --max-line-length 120
+
+      - name: Run mypy
+        run: mypy streamlit_app/ --ignore-missing-imports
+
+      - name: Check formatting (black)
+        run: black --check --line-length 120 streamlit_app/ tests/
+
+      - name: Check import ordering (isort)
+        run: isort --check-only --profile black streamlit_app/ tests/

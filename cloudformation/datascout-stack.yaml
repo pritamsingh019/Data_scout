@@ -1,0 +1,157 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: DataScout - Autonomous Enterprise Data Analyst
+
+Parameters:
+  BedrockAgentId:
+    Type: String
+    Description: ID of the pre-configured Bedrock Agent
+  BedrockAgentAliasId:
+    Type: String
+    Description: Alias ID of the Bedrock Agent
+  GitHubRepoUrl:
+    Type: String
+    Default: https://github.com/org/datascout
+    Description: GitHub repository URL for App Runner source
+  EnvironmentName:
+    Type: String
+    Default: prod
+    AllowedValues: [dev, staging, prod]
+    Description: Deployment environment name
+
+Resources:
+  # ── S3 Storage Bucket ─────────────────────────────────────────────────────
+  DataBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Sub 'datascout-storage-${AWS::AccountId}-${EnvironmentName}'
+      VersioningConfiguration:
+        Status: Enabled
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: AES256
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        IgnorePublicAcls: true
+        BlockPublicPolicy: true
+        RestrictPublicBuckets: true
+      LifecycleConfiguration:
+        Rules:
+          - Id: DeleteSessionData
+            Prefix: datasets/
+            Status: Enabled
+            ExpirationInDays: 7
+          - Id: DeleteArtifacts
+            Prefix: artifacts/
+            Status: Enabled
+            ExpirationInDays: 7
+          - Id: ArchiveLogs
+            Prefix: logs/
+            Status: Enabled
+            Transitions:
+              - TransitionInDays: 7
+                StorageClass: GLACIER
+            ExpirationInDays: 90
+
+  # ── IAM Role for App Runner ───────────────────────────────────────────────
+  AppRunnerRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub 'DataScout-AppRunnerRole-${EnvironmentName}'
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: tasks.apprunner.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/AmazonBedrockFullAccess
+      Policies:
+        - PolicyName: S3Access
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - s3:PutObject
+                  - s3:GetObject
+                  - s3:DeleteObject
+                  - s3:HeadObject
+                  - s3:ListBucket
+                Resource:
+                  - !GetAtt DataBucket.Arn
+                  - !Sub '${DataBucket.Arn}/*'
+        - PolicyName: CloudWatchAccess
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - logs:CreateLogGroup
+                  - logs:CreateLogStream
+                  - logs:PutLogEvents
+                  - cloudwatch:PutMetricData
+                Resource: '*'
+
+  # ── App Runner Service ────────────────────────────────────────────────────
+  AppRunnerService:
+    Type: AWS::AppRunner::Service
+    Properties:
+      ServiceName: !Sub 'datascout-frontend-${EnvironmentName}'
+      SourceConfiguration:
+        AutoDeploymentsEnabled: true
+        CodeRepository:
+          RepositoryUrl: !Ref GitHubRepoUrl
+          SourceCodeVersion:
+            Type: BRANCH
+            Value: main
+          CodeConfiguration:
+            ConfigurationSource: API
+            CodeConfigurationValues:
+              Runtime: PYTHON_311
+              BuildCommand: pip install -r requirements.txt
+              StartCommand: !Sub >-
+                streamlit run streamlit_app/app.py
+                --server.port 8080
+                --server.address 0.0.0.0
+                --server.headless true
+              Port: '8080'
+              RuntimeEnvironmentVariables:
+                AWS_REGION: !Ref 'AWS::Region'
+                S3_BUCKET: !Ref DataBucket
+                BEDROCK_AGENT_ID: !Ref BedrockAgentId
+                BEDROCK_AGENT_ALIAS_ID: !Ref BedrockAgentAliasId
+      InstanceConfiguration:
+        Cpu: '1024'
+        Memory: '2048'
+        InstanceRoleArn: !GetAtt AppRunnerRole.Arn
+      HealthCheckConfiguration:
+        Protocol: HTTP
+        Path: /_stcore/health
+        Interval: 10
+        Timeout: 5
+        HealthyThreshold: 1
+        UnhealthyThreshold: 5
+
+  # ── CloudWatch Log Group ──────────────────────────────────────────────────
+  LogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub '/datascout/${EnvironmentName}/app'
+      RetentionInDays: 30
+
+Outputs:
+  AppUrl:
+    Description: DataScout application URL
+    Value: !GetAtt AppRunnerService.ServiceUrl
+    Export:
+      Name: !Sub 'DataScout-${EnvironmentName}-AppUrl'
+  BucketName:
+    Description: S3 storage bucket name
+    Value: !Ref DataBucket
+    Export:
+      Name: !Sub 'DataScout-${EnvironmentName}-BucketName'
+  AppRunnerRoleArn:
+    Description: App Runner execution role ARN
+    Value: !GetAtt AppRunnerRole.Arn

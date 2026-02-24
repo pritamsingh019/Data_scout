@@ -1,0 +1,148 @@
+/* =============================================================================
+   DataScout — Custom CSS Theme
+   Enterprise Data Analyst UI Overrides for Streamlit
+   ============================================================================= */
+
+/* ── CSS Custom Properties (Design Tokens) ─────────────────────────────────── */
+:root {
+    --ds-primary: #1E3A5F;
+    --ds-secondary: #4A90D9;
+    --ds-accent: #2ECC71;
+    --ds-background: #F8FAFC;
+    --ds-surface: #FFFFFF;
+    --ds-text: #1A1A2E;
+    --ds-text-secondary: #6C757D;
+    --ds-error: #E74C3C;
+    --ds-success: #2ECC71;
+    --ds-warning: #F39C12;
+    --ds-border: #E9ECEF;
+    --ds-shadow: rgba(0, 0, 0, 0.05);
+    --ds-radius: 12px;
+    --ds-radius-sm: 8px;
+}
+
+/* ── Global Layout ─────────────────────────────────────────────────────────── */
+.main .block-container {
+    max-width: 1200px;
+    padding: 2rem 1rem;
+}
+
+/* ── Header ────────────────────────────────────────────────────────────────── */
+h1 {
+    color: var(--ds-primary) !important;
+    font-weight: 700 !important;
+    letter-spacing: -0.02em;
+}
+
+/* ── Upload Zone ───────────────────────────────────────────────────────────── */
+.stFileUploader > div {
+    border: 2px dashed var(--ds-secondary) !important;
+    border-radius: var(--ds-radius) !important;
+    padding: 2rem !important;
+    background: var(--ds-background) !important;
+    transition: border-color 0.3s ease, background 0.3s ease;
+}
+
+.stFileUploader > div:hover {
+    border-color: var(--ds-primary) !important;
+    background: #EEF2F7 !important;
+}
+
+/* ── Results Card ──────────────────────────────────────────────────────────── */
+.results-card {
+    background: var(--ds-surface);
+    border: 1px solid var(--ds-border);
+    border-radius: var(--ds-radius);
+    padding: 1.5rem;
+    box-shadow: 0 2px 8px var(--ds-shadow);
+}
+
+/* ── Code Block Styling ────────────────────────────────────────────────────── */
+.stCodeBlock {
+    border-radius: var(--ds-radius-sm) !important;
+    font-size: 14px !important;
+}
+
+/* ── Metric Cards ──────────────────────────────────────────────────────────── */
+[data-testid="stMetric"] {
+    background: var(--ds-background);
+    border-radius: var(--ds-radius-sm);
+    padding: 0.75rem;
+    border: 1px solid var(--ds-border);
+}
+
+[data-testid="stMetricValue"] {
+    font-size: 1.1rem !important;
+    font-weight: 600;
+    color: var(--ds-primary);
+}
+
+/* ── Buttons ───────────────────────────────────────────────────────────────── */
+.stButton > button[kind="primary"] {
+    background-color: var(--ds-secondary) !important;
+    border: none !important;
+    border-radius: var(--ds-radius-sm) !important;
+    font-weight: 600 !important;
+    transition: background-color 0.2s ease, transform 0.1s ease;
+}
+
+.stButton > button[kind="primary"]:hover {
+    background-color: var(--ds-primary) !important;
+    transform: translateY(-1px);
+}
+
+/* ── Tabs ──────────────────────────────────────────────────────────────────── */
+.stTabs [data-baseweb="tab-list"] {
+    gap: 8px;
+}
+
+.stTabs [data-baseweb="tab"] {
+    border-radius: var(--ds-radius-sm) var(--ds-radius-sm) 0 0;
+    padding: 0.5rem 1rem;
+    font-weight: 500;
+}
+
+/* ── Expander ──────────────────────────────────────────────────────────────── */
+.streamlit-expanderHeader {
+    font-weight: 600 !important;
+    color: var(--ds-primary) !important;
+}
+
+/* ── Spinner ───────────────────────────────────────────────────────────────── */
+.stSpinner > div {
+    color: var(--ds-secondary) !important;
+}
+
+/* ── Divider ───────────────────────────────────────────────────────────────── */
+hr {
+    border-color: var(--ds-border) !important;
+    margin: 1.5rem 0 !important;
+}
+
+/* ── Footer ────────────────────────────────────────────────────────────────── */
+footer {
+    visibility: hidden;
+}
+
+/* ── Toast Messages ────────────────────────────────────────────────────────── */
+.stToast {
+    border-radius: var(--ds-radius-sm) !important;
+}
+
+/* ── Responsive: Tablet ────────────────────────────────────────────────────── */
+@media (max-width: 768px) {
+    .main .block-container {
+        padding: 1rem 0.5rem;
+    }
+}
+
+/* ── Responsive: Mobile ────────────────────────────────────────────────────── */
+@media (max-width: 480px) {
+    h1 {
+        font-size: 1.5rem !important;
+    }
+
+    [data-testid="stMetricValue"] {
+        font-size: 0.9rem !important;
+    }
+}
