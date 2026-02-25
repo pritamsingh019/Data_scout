@@ -1,3 +1,5 @@
+
+
 <h1 align="center">🔬 DataScout</h1>
 
 <p align="center">
@@ -111,43 +113,10 @@ streamlit run streamlit_app/app.py
 
 ### System Overview
 
-```
-┌─────────────────────┐
-│   👤 Business User   │
-└──────────┬──────────┘
-           │ Natural Language Query
-           ▼
-┌──────────────────────────────────┐
-│   🖥️ Streamlit Frontend          │
-│   (AWS App Runner)               │
-│   Upload • Query • Results       │
-└──────────┬───────────────────────┘
-           │ boto3 SDK
-           ▼
-┌──────────────────────────────────┐
-│   🤖 Amazon Bedrock Agent        │
-│   Claude 3.5 Sonnet              │
-│                                  │
-│   Query Understanding            │
-│   Code Generation                │
-│   Result Validation              │
-└───┬──────────────────────────┬───┘
-    │                          │
-    ▼                          ▼
-┌──────────────────┐  ┌──────────────────┐
-│ 🐍 Code          │  │ 📦 Amazon S3      │
-│ Interpreter      │  │                  │
-│ (Python Sandbox) │  │ Encrypted Data   │
-│ pandas • numpy   │  │ AES-256          │
-│ matplotlib       │  │ Lifecycle: 7 days│
-└──────────────────┘  └──────────────────┘
-           │
-           ▼
-┌──────────────────────────────────┐
-│   📊 AWS CloudWatch              │
-│   Monitoring • Logging • Audit   │
-└──────────────────────────────────┘
-```
+
+<p align="center">
+  <img src="Docs/system_architecture.png" alt="DataScout System Architecture" width="700"/>
+</p>
 
 ### Tech Stack
 
