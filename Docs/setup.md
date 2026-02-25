@@ -177,8 +177,16 @@ BEDROCK_AGENT_ALIAS_ID=<output-alias-id>
 
 ### 4.1 Start Locally
 
+> **Important:** Always activate the virtual environment before running the app, or use the venv's `streamlit` directly. Dependencies like `boto3`, `pandas`, and `openpyxl` are installed inside the venv, not globally.
+
 ```bash
+# Option A — activate venv first, then run
+source venv/bin/activate          # macOS/Linux
+# venv\Scripts\activate           # Windows
 streamlit run streamlit_app/app.py
+
+# Option B — run directly via venv (no activation needed)
+venv/bin/streamlit run streamlit_app/app.py
 ```
 
 The app will open at **http://localhost:8501**.
@@ -186,6 +194,7 @@ The app will open at **http://localhost:8501**.
 ### 4.2 Start with Custom Port
 
 ```bash
+source venv/bin/activate
 streamlit run streamlit_app/app.py --server.port 8080
 ```
 
@@ -209,17 +218,20 @@ docker run -p 8501:8501 \
 ## 5. Running Tests
 
 ```bash
+# Activate venv first
+source venv/bin/activate
+
 # Unit tests only
-pytest tests/unit/ -v
+python -m pytest tests/unit/ -v
 
 # Unit tests with coverage
-pytest tests/unit/ -v --cov=streamlit_app --cov-report=term-missing
+python -m pytest tests/unit/ -v --cov=streamlit_app --cov-report=term-missing
 
 # Integration tests (requires live AWS)
-pytest tests/integration/ -v -m integration
+python -m pytest tests/integration/ -v -m integration
 
-# All tests
-pytest tests/ -v
+# All non-integration tests
+python -m pytest tests/ -v -m "not integration"
 
 # Linting
 flake8 streamlit_app/ tests/
@@ -265,11 +277,12 @@ isort --check-only --profile black streamlit_app/ tests/
 
 | Issue | Cause | Fix |
 |-------|-------|-----|
+| `ModuleNotFoundError: No module named 'boto3'` | Running with system Python instead of venv | `source venv/bin/activate` then `streamlit run ...` OR use `venv/bin/streamlit run streamlit_app/app.py` |
+| `ModuleNotFoundError: No module named 'openpyxl'` | openpyxl missing from env | Run `pip install -r requirements.txt` inside activated venv |
 | `EnvironmentError: Missing required env vars` | `.env` not configured | Copy `.env.example` to `.env` and fill in values |
 | `NoCredentialsError` | AWS creds not found | Run `aws configure` or set env vars |
 | `AccessDenied` on S3 | IAM role missing permissions | Re-run `scripts/create_iam_roles.sh` |
 | `ResourceNotFoundException` (Bedrock) | Agent not prepared | Go to Bedrock Console → Agent → Click **Prepare** |
-| `ModuleNotFoundError` | Missing dependency | Run `pip install -r requirements.txt` |
 | Port 8501 in use | Another Streamlit running | Use `--server.port 8080` or kill the existing process |
 | File upload fails | File > 100 MB or unsupported format | Use CSV, XLSX, XLS, or JSON under 100 MB |
 | Docker build fails | Missing Docker daemon | Install and start Docker Desktop |

@@ -1,11 +1,7 @@
 """DataScout UI Components."""
 
-from .file_upload import render_upload_widget
-from .query_input import render_query_input
-from .results_display import render_results
-from .code_viewer import render_code_block
-from .dataset_preview import render_preview
-from .visualization import render_visualization
+# Submodules are imported directly by callers (e.g. app.py and results_display.py).
+# Keeping this __init__ import-free avoids pulling in streamlit at package load time.
 
 __all__ = [
     'render_upload_widget',

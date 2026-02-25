@@ -1,8 +1,7 @@
 """DataScout Utilities — validation, formatting, error handling, and logging."""
 
-from .validators import validate_file_format, validate_file_size
-from .formatters import format_number, format_table
-from .error_handler import handle_error
+# Submodules are imported directly by callers (e.g. app.py).
+# Keeping this __init__ import-free avoids side-effects at package load time.
 
 __all__ = [
     'validate_file_format',

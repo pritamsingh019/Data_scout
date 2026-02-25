@@ -37,19 +37,29 @@ class Config:
     def validate(cls) -> bool:
         """Validate all required configuration variables are set.
 
-        Raises:
-            EnvironmentError: If any required variable is missing.
+        Shows a friendly Streamlit error if any required variable is missing
+        instead of raising an unhandled exception.
 
         Returns:
-            True if all required variables are present.
+            True if all required variables are present, False otherwise.
         """
+        import streamlit as st
+
         required = {
             'BEDROCK_AGENT_ID': cls.BEDROCK_AGENT_ID,
             'S3_BUCKET': cls.S3_BUCKET,
         }
         missing = [k for k, v in required.items() if not v]
         if missing:
-            raise EnvironmentError(
-                f"Missing required environment variables: {', '.join(missing)}"
+            st.error(
+                "⚙️ **Configuration Incomplete**\n\n"
+                f"The following environment variables are not set: "
+                f"`{'`, `'.join(missing)}`\n\n"
+                "**To fix this:**\n"
+                "1. Copy `.env.example` → `.env`\n"
+                "2. Fill in your AWS Bedrock Agent ID and S3 bucket name\n"
+                "3. Restart the app"
             )
+            st.stop()
+            return False
         return True
