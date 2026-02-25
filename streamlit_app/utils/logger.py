@@ -8,7 +8,7 @@ events without capturing any actual data values (privacy compliance).
 import json
 import hashlib
 import logging
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Optional
 
 logger = logging.getLogger('datascout')
@@ -42,7 +42,7 @@ def log_query_execution(session_id: str, query: str,
         'execution_time_ms': execution_time_ms,
         'success': success,
         'error_type': type(error).__name__ if error else None,
-        'timestamp': datetime.utcnow().isoformat()
+        'timestamp': datetime.now(timezone.utc).isoformat()
     }))
 
 
@@ -64,7 +64,7 @@ def log_dataset_upload(session_id: str, filename: str,
         'row_count': rows,
         'column_count': columns,
         'size_mb': size_mb,
-        'timestamp': datetime.utcnow().isoformat()
+        'timestamp': datetime.now(timezone.utc).isoformat()
     }))
 
 
@@ -80,7 +80,7 @@ def log_session_event(session_id: str, event_type: str,
     log_entry = {
         'event': event_type,
         'session_id': session_id,
-        'timestamp': datetime.utcnow().isoformat()
+        'timestamp': datetime.now(timezone.utc).isoformat()
     }
     if details:
         log_entry['details'] = details

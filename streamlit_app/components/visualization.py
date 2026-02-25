@@ -8,7 +8,10 @@ from typing import List
 
 import streamlit as st
 
-from streamlit_app.services.s3_handler import S3Handler
+try:
+    from services.s3_handler import S3Handler
+except ImportError:
+    from streamlit_app.services.s3_handler import S3Handler
 
 
 def render_visualization(s3_uris: List[str], s3_handler: S3Handler = None) -> None:

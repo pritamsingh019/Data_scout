@@ -6,8 +6,12 @@ Renders analysis results with tabbed views for explanation, data, code, and char
 
 import streamlit as st
 
-from streamlit_app.components.code_viewer import render_code_block
-from streamlit_app.components.visualization import render_visualization
+try:
+    from components.code_viewer import render_code_block
+    from components.visualization import render_visualization
+except ImportError:
+    from streamlit_app.components.code_viewer import render_code_block
+    from streamlit_app.components.visualization import render_visualization
 
 
 def render_results(response: dict) -> None:

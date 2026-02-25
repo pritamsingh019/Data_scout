@@ -9,7 +9,7 @@ from typing import Optional
 import streamlit as st
 from streamlit.runtime.uploaded_file_manager import UploadedFile
 
-from streamlit_app.config import Config
+from config import Config
 
 
 def render_upload_widget() -> Optional[UploadedFile]:

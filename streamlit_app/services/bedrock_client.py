@@ -11,7 +11,7 @@ from typing import Dict, List
 import boto3
 import botocore.config
 
-from streamlit_app.config import Config
+from config import Config
 
 
 class BedrockAgentClient:

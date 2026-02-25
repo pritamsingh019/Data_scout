@@ -26,6 +26,7 @@ classifiers = [
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+pythonpath = [".", "streamlit_app"]
 markers = [
     "integration: marks tests requiring live AWS credentials (deselect with '-m not integration')",
 ]

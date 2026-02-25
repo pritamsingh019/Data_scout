@@ -8,7 +8,7 @@ application constraints before processing.
 from pathlib import Path
 from typing import Set
 
-from streamlit_app.config import Config
+from config import Config
 
 
 def validate_file_format(filename: str, allowed_formats: Set[str] = None) -> bool:

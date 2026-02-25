@@ -1,11 +1,11 @@
 """DataScout UI Components."""
 
-from streamlit_app.components.file_upload import render_upload_widget
-from streamlit_app.components.query_input import render_query_input
-from streamlit_app.components.results_display import render_results
-from streamlit_app.components.code_viewer import render_code_block
-from streamlit_app.components.dataset_preview import render_preview
-from streamlit_app.components.visualization import render_visualization
+from .file_upload import render_upload_widget
+from .query_input import render_query_input
+from .results_display import render_results
+from .code_viewer import render_code_block
+from .dataset_preview import render_preview
+from .visualization import render_visualization
 
 __all__ = [
     'render_upload_widget',

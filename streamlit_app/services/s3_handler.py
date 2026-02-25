@@ -12,7 +12,7 @@ from typing import Dict, Tuple
 import boto3
 import pandas as pd
 
-from streamlit_app.config import Config
+from config import Config
 
 
 class S3Handler:

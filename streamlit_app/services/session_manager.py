@@ -6,10 +6,10 @@ timeout enforcement, and cleanup.
 """
 
 import uuid
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Dict, Optional
 
-from streamlit_app.config import Config
+from config import Config
 
 
 class SessionManager:
@@ -31,8 +31,8 @@ class SessionManager:
         """
         session_id = str(uuid.uuid4())
         self._sessions[session_id] = {
-            'created_at': datetime.utcnow(),
-            'last_active': datetime.utcnow(),
+            'created_at': datetime.now(timezone.utc),
+            'last_active': datetime.now(timezone.utc),
             'query_count': 0,
             'dataset_loaded': False,
             'dataset_uri': None
@@ -52,7 +52,7 @@ class SessionManager:
         if not session:
             return False
 
-        elapsed = datetime.utcnow() - session['last_active']
+        elapsed = datetime.now(timezone.utc) - session['last_active']
         if elapsed.total_seconds() > Config.SESSION_TIMEOUT_SECONDS:
             self._sessions.pop(session_id, None)
             return False
@@ -66,7 +66,7 @@ class SessionManager:
             session_id: The session ID to refresh.
         """
         if session_id in self._sessions:
-            self._sessions[session_id]['last_active'] = datetime.utcnow()
+            self._sessions[session_id]['last_active'] = datetime.now(timezone.utc)
 
     def increment_query_count(self, session_id: str) -> int:
         """Increment and return the query count for a session.
@@ -108,7 +108,7 @@ class SessionManager:
         Returns:
             Number of sessions that were cleaned up.
         """
-        now = datetime.utcnow()
+        now = datetime.now(timezone.utc)
         timeout = timedelta(seconds=Config.SESSION_TIMEOUT_SECONDS)
         expired = [
             sid for sid, info in self._sessions.items()

@@ -5,20 +5,30 @@ Streamlit-based frontend for autonomous enterprise data analysis
 powered by Claude 3.5 Sonnet on Amazon Bedrock.
 """
 
+import sys
+from pathlib import Path
+
+# Streamlit adds the script's own directory to sys.path, so direct imports work.
+# Also ensure the project root is present for any absolute references.
+_script_dir = Path(__file__).resolve().parent        # .../Data_scout/streamlit_app
+_project_root = _script_dir.parent                  # .../Data_scout
+for _p in [str(_script_dir), str(_project_root)]:
+    if _p not in sys.path:
+        sys.path.insert(0, _p)
+
 import streamlit as st
 import uuid
 from datetime import datetime
-from pathlib import Path
 
-from streamlit_app.config import Config
-from streamlit_app.services.bedrock_client import BedrockAgentClient
-from streamlit_app.services.s3_handler import S3Handler
-from streamlit_app.components.file_upload import render_upload_widget
-from streamlit_app.components.query_input import render_query_input
-from streamlit_app.components.results_display import render_results
-from streamlit_app.components.dataset_preview import render_preview
-from streamlit_app.utils.error_handler import handle_error
-from streamlit_app.utils.logger import log_query_execution, log_dataset_upload
+from config import Config
+from services.bedrock_client import BedrockAgentClient
+from services.s3_handler import S3Handler
+from components.file_upload import render_upload_widget
+from components.query_input import render_query_input
+from components.results_display import render_results
+from components.dataset_preview import render_preview
+from utils.error_handler import handle_error
+from utils.logger import log_query_execution, log_dataset_upload
 
 # ── Page Configuration ────────────────────────────────────────────────────────
 st.set_page_config(
