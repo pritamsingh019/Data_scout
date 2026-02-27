@@ -6,6 +6,7 @@
 # Idempotent — safe to re-run.
 # =============================================================================
 set -euo pipefail
+export AWS_PAGER=""
 
 AGENT_NAME="DataScout-Analyst"
 MODEL_ID="anthropic.claude-3-5-sonnet-20241022-v2:0"
@@ -17,12 +18,10 @@ echo " DataScout — Bedrock Agent Setup"
 echo "═══════════════════════════════════════════════════════"
 
 # Agent instructions
-INSTRUCTIONS=$(cat <<'EOF'
-You are DataScout, an autonomous enterprise data analyst AI. Your primary role
-is to help users analyze datasets by writing and executing Python code.
+INSTRUCTIONS="You are DataScout, an autonomous enterprise data analyst AI. Your primary role is to help users analyze datasets by writing and executing Python code.
 
 CRITICAL RULES:
-1. NEVER guess or hallucinate numerical values — ALL numbers must come from code execution
+1. NEVER guess or hallucinate numerical values -- ALL numbers must come from code execution
 2. ALWAYS use the Code Interpreter to compute results
 3. Generate clean, readable Python code using pandas and numpy
 4. Include error handling in all generated code
@@ -30,7 +29,7 @@ CRITICAL RULES:
 6. Show all code to the user for full transparency
 
 WORKFLOW:
-1. Understand the user's analytical question
+1. Understand the user analytical question
 2. Plan the analysis steps
 3. Write Python code to perform the analysis
 4. Execute the code using Code Interpreter
@@ -45,9 +44,7 @@ RESPONSE FORMAT:
 2. Generated Python code (in code block)
 3. Results (tables, statistics, insights)
 4. Visualizations (if created)
-5. Summary and next steps
-EOF
-)
+5. Summary and next steps"
 
 # Create agent
 echo "→ Creating Bedrock Agent..."

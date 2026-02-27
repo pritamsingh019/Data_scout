@@ -18,7 +18,7 @@ for _p in [str(_script_dir), str(_project_root)]:
 
 import streamlit as st
 import uuid
-from datetime import datetime
+from datetime import datetime, UTC
 
 from config import Config
 from services.bedrock_client import BedrockAgentClient
@@ -57,7 +57,7 @@ def initialize_session() -> None:
     """Initialize session state with defaults on first page load."""
     defaults = {
         'session_id': str(uuid.uuid4()),
-        'session_created_at': datetime.utcnow(),
+        'session_created_at': datetime.now(UTC),
         'dataset_loaded': False,
         'dataset_s3_uri': None,
         'dataset_metadata': None,
@@ -131,7 +131,7 @@ def main() -> None:
 
     if query and not st.session_state.is_processing:
         st.session_state.is_processing = True
-        start_time = datetime.utcnow()
+        start_time = datetime.now(UTC)
 
         with st.spinner("🔍 Analyzing your data..."):
             try:
@@ -142,7 +142,7 @@ def main() -> None:
                 )
 
                 execution_time = int(
-                    (datetime.utcnow() - start_time).total_seconds() * 1000
+                    (datetime.now(UTC) - start_time).total_seconds() * 1000
                 )
 
                 # Store in conversation history
@@ -152,7 +152,7 @@ def main() -> None:
                     'response': response,
                     'execution_time_ms': execution_time,
                     'success': True,
-                    'timestamp': datetime.utcnow()
+                    'timestamp': datetime.now(UTC)
                 })
 
                 # Log query execution

@@ -40,7 +40,7 @@ def render_visualization(s3_uris: List[str], s3_handler: S3Handler = None) -> No
             st.image(
                 image_bytes,
                 caption=f"Chart {i + 1}",
-                use_container_width=True
+                width="stretch"
             )
             st.download_button(
                 label=f"📥 Download Chart {i + 1}",

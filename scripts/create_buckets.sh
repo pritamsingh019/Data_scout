@@ -18,7 +18,26 @@ echo "════════════════════════�
 
 # Create bucket
 echo "→ Creating S3 bucket..."
-aws s3 mb "s3://${BUCKET_NAME}" --region "${REGION}" 2>/dev/null || echo "  Bucket already exists."
+CREATE_OUTPUT=""
+if [ "${REGION}" = "us-east-1" ]; then
+    CREATE_OUTPUT=$(aws s3api create-bucket \
+        --bucket "${BUCKET_NAME}" \
+        --region "${REGION}" 2>&1) && echo "  Bucket created."
+else
+    CREATE_OUTPUT=$(aws s3api create-bucket \
+        --bucket "${BUCKET_NAME}" \
+        --region "${REGION}" \
+        --create-bucket-configuration LocationConstraint="${REGION}" 2>&1) && echo "  Bucket created."
+fi
+
+# Handle result
+if echo "${CREATE_OUTPUT}" | grep -q "BucketAlreadyOwnedByYou"; then
+    echo "  Bucket already exists (owned by you). ✅"
+elif echo "${CREATE_OUTPUT}" | grep -q "error\|Error"; then
+    echo "  ${CREATE_OUTPUT}"
+    echo "  ❌ Failed to create bucket."
+    exit 1
+fi
 
 # Enable versioning
 echo "→ Enabling versioning..."
