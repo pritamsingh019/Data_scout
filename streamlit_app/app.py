@@ -2,7 +2,7 @@
 DataScout — Main Application Entry Point.
 
 Streamlit-based frontend for autonomous enterprise data analysis
-powered by Claude 3.5 Sonnet on Amazon Bedrock.
+powered by Amazon Nova Pro on Amazon Bedrock.
 """
 
 import sys
@@ -41,7 +41,7 @@ st.set_page_config(
         'Report a bug': 'mailto:support@datascout.ai',
         'About': (
             'DataScout v1.0 — Autonomous Enterprise Data Analyst\n'
-            'Powered by Claude 3.5 Sonnet on Amazon Bedrock'
+            'Powered by Amazon Nova Pro on Amazon Bedrock'
         )
     }
 )
@@ -86,7 +86,7 @@ def main() -> None:
 
     # ── Header ────────────────────────────────────────────────────────────
     st.title("🔬 DataScout")
-    st.caption("Autonomous Enterprise Data Analyst • Powered by Claude 3.5 Sonnet")
+    st.caption("Autonomous Enterprise Data Analyst • Powered by Amazon Nova Pro")
     st.divider()
 
     # ── Section 1: File Upload ────────────────────────────────────────────
@@ -190,7 +190,7 @@ def main() -> None:
 
     # ── Footer ────────────────────────────────────────────────────────────
     st.divider()
-    st.caption("DataScout v1.0 • Powered by Claude 3.5 Sonnet on Amazon Bedrock")
+    st.caption("DataScout v1.0 • Powered by Amazon Nova Pro on Amazon Bedrock")
 
 
 if __name__ == '__main__':

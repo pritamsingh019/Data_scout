@@ -25,7 +25,8 @@ class S3Handler:
     def __init__(self):
         """Initialize the S3 client."""
         self.s3 = boto3.client('s3', region_name=Config.AWS_REGION)
-        self.bucket: str = Config.S3_BUCKET
+        # Force the bucket to the one the Bedrock agent role has permissions for
+        self.bucket: str = "datascout-storage-use2"
 
     def upload_dataset(self, file_obj, session_id: str) -> str:
         """Upload a dataset to S3 with validation and encryption.

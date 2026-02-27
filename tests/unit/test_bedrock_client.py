@@ -2,6 +2,7 @@
 Unit Tests — BedrockAgentClient.
 
 Tests the Bedrock Agent client wrapper with mocked AWS services.
+Covers multiple response formats for model-agnostic parsing.
 """
 
 import pytest
@@ -52,15 +53,31 @@ class TestBedrockAgentClient:
 
         call_kwargs = client.client.invoke_agent.call_args[1]
         assert call_kwargs['sessionState']['sessionAttributes']['dataset_uri'] == \
-            "s3://bucket/sales.csv"
+            "s3://datascout-storage-use2/datasets/session/original/sales.csv"
 
-    def test_parse_response_extracts_code(self, client):
-        """Verify Python code blocks are extracted from response."""
+    def test_parse_response_extracts_python_code(self, client):
+        """Verify ```python code blocks are extracted from response."""
         text = 'Explanation\n```python\ndf.groupby("x").mean()\n```\nResults here'
         result = client._extract_components(text)
 
         assert 'groupby' in result['code']
         assert 'Explanation' in result['explanation']
+
+    def test_parse_response_extracts_py_code(self, client):
+        """Verify ```py code blocks are extracted (Nova Pro format)."""
+        text = 'Analysis\n```py\ndf.describe()\n```\nDone'
+        result = client._extract_components(text)
+
+        assert 'describe' in result['code']
+        assert 'Analysis' in result['explanation']
+
+    def test_parse_response_extracts_bare_code(self, client):
+        """Verify bare ``` code blocks are extracted (no language tag)."""
+        text = 'Here is the code:\n```\nimport pandas as pd\ndf = pd.read_csv("data.csv")\n```\nFinished'
+        result = client._extract_components(text)
+
+        assert 'pandas' in result['code']
+        assert 'Here is the code' in result['explanation']
 
     def test_parse_response_extracts_visualization_uris(self, client):
         """Verify S3 URIs for charts are extracted."""
@@ -77,6 +94,15 @@ class TestBedrockAgentClient:
 
         assert result['code'] == ''
         assert 'more information' in result['explanation']
+
+    def test_parse_response_fallback_raw_text(self, client):
+        """Verify entire raw text is shown as explanation when no structure found."""
+        text = 'The dataset contains 500 rows with sales data across 4 regions.'
+        result = client._extract_components(text)
+
+        assert result['explanation'] == text
+        assert result['code'] == ''
+        assert result['results'] == ''
 
     def test_invoke_agent_empty_query(self, client):
         """Verify empty query is handled without exception."""
@@ -104,3 +130,35 @@ class TestBedrockAgentClient:
         result = client._extract_components(text)
 
         assert len(result['visualizations']) == 2
+
+    def test_parse_response_empty_response(self, client):
+        """Verify empty response returns a helpful message."""
+        mock_response = {
+            'completion': [{'chunk': {'bytes': b''}}],
+            'sessionId': 'test'
+        }
+        result = client._parse_response(mock_response)
+
+        assert 'empty response' in result['explanation'].lower()
+
+    def test_parse_response_extracts_next_steps(self, client):
+        """Verify next steps are extracted from bulleted lists."""
+        text = (
+            'Analysis complete.\n\n'
+            'Next steps:\n'
+            '- Investigate outliers in the revenue column\n'
+            '- Create a pivot table by region\n'
+            '- Visualize monthly trends\n'
+        )
+        result = client._extract_components(text)
+
+        assert len(result['next_steps']) >= 2
+        assert any('outlier' in s.lower() for s in result['next_steps'])
+
+    def test_parse_response_jpg_visualization(self, client):
+        """Verify JPG visualization URIs are also extracted."""
+        text = 'Chart saved to s3://bucket/artifacts/chart.jpg'
+        result = client._extract_components(text)
+
+        assert len(result['visualizations']) == 1
+        assert 'chart.jpg' in result['visualizations'][0]
