@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "datascout"
 version = "1.0.0"
-description = "Autonomous Enterprise Data Analyst powered by Claude 3.5 Sonnet on Amazon Bedrock"
+description = "Autonomous Enterprise Data Analyst powered by Amazon Nova Pro on Amazon Bedrock"
 readme = "README.md"
 license = {text = "MIT"}
 requires-python = ">=3.9"

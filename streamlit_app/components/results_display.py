@@ -71,8 +71,9 @@ def render_results(response: dict) -> None:
     # Tab 4: Charts
     with tab_charts:
         visualizations = response.get('visualizations', [])
-        if visualizations:
-            render_visualization(visualizations)
+        chart_images = response.get('chart_images', [])
+        if visualizations or chart_images:
+            render_visualization(s3_uris=visualizations, chart_images=chart_images)
         else:
             st.info("No visualizations were generated for this query.")
 

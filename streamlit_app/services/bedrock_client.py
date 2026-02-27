@@ -82,11 +82,23 @@ class BedrockAgentClient:
                 }
             ]
 
+        # ── Append output format hint ──────────────────────────────────────
+        # Keep the user's query as the primary focus; only append a brief
+        # format hint so the agent's own instructions handle the analysis.
+        enhanced_query = (
+            f"{query}\n\n"
+            "Please include in your response: "
+            "a brief explanation of your approach and key insights, "
+            "the Python code you used, "
+            "results displayed as a markdown table, "
+            "and generate a chart to visualize the results."
+        )
+
         response = self.client.invoke_agent(
             agentId=self.agent_id,
             agentAliasId=self.agent_alias_id,
             sessionId=session_id,
-            inputText=query,
+            inputText=enhanced_query,
             enableTrace=True,
             sessionState=session_state
         )
@@ -95,6 +107,9 @@ class BedrockAgentClient:
     def _parse_response(self, response: dict) -> Dict:
         """Parse streaming response into structured components.
 
+        Captures both text chunks and file outputs (e.g., chart images)
+        from the Bedrock Agent completion stream.
+
         Args:
             response: Raw response from invoke_agent API.
 
@@ -102,10 +117,30 @@ class BedrockAgentClient:
             Structured dict with extracted components.
         """
         chunks: List[str] = []
+        chart_images: list = []  # Raw image bytes from Code Interpreter
+
         for event in response.get('completion', []):
+            # ── Text chunks
             if 'chunk' in event:
                 chunk_bytes = event['chunk'].get('bytes', b'')
                 chunks.append(chunk_bytes.decode('utf-8'))
+
+            # ── File outputs from Code Interpreter (chart images)
+            if 'files' in event:
+                files_data = event['files'].get('files', [])
+                for f in files_data:
+                    file_bytes = f.get('bytes', b'')
+                    file_name = f.get('name', 'chart.png')
+                    file_type = f.get('type', 'image/png')
+                    if file_bytes and ('image' in file_type or
+                                       file_name.endswith(('.png', '.jpg', '.jpeg', '.svg'))):
+                        chart_images.append({
+                            'bytes': file_bytes,
+                            'name': file_name,
+                            'type': file_type
+                        })
+                        logger.info("Captured chart image: %s (%d bytes)",
+                                    file_name, len(file_bytes))
 
         full_text = ''.join(chunks)
 
@@ -113,7 +148,7 @@ class BedrockAgentClient:
         logger.debug("Raw agent response length: %d chars", len(full_text))
         logger.debug("Raw agent response:\n%s", full_text)
 
-        if not full_text.strip():
+        if not full_text.strip() and not chart_images:
             logger.warning("Agent returned an empty response")
             return {
                 'explanation': 'The agent returned an empty response. '
@@ -121,10 +156,13 @@ class BedrockAgentClient:
                 'code': '',
                 'results': '',
                 'visualizations': [],
+                'chart_images': [],
                 'next_steps': []
             }
 
-        return self._extract_components(full_text)
+        result = self._extract_components(full_text)
+        result['chart_images'] = chart_images
+        return result
 
     def _extract_components(self, text: str) -> Dict:
         """Extract structured components from the agent's text response.
@@ -167,9 +205,24 @@ class BedrockAgentClient:
         s3_uris = re.findall(r's3://[^\s\>\"\'\]\)]+', text)
         components['visualizations'] = s3_uris
 
+        # ── Strip S3 references from text so they don't render as broken
+        # images in the browser (s3:// URLs are not browser-accessible).
+        # The images are properly downloaded and shown in the Charts tab.
+        cleaned_text = text
+        if s3_uris:
+            # Remove markdown image references: ![alt](s3://...)
+            cleaned_text = re.sub(
+                r'!\[[^\]]*\]\(s3://[^\)]+\)', '', cleaned_text
+            )
+            # Remove bare S3 URIs (but keep surrounding text)
+            for uri in s3_uris:
+                cleaned_text = cleaned_text.replace(uri, '')
+            # Clean up leftover empty lines from removals
+            cleaned_text = re.sub(r'\n{3,}', '\n\n', cleaned_text)
+
         # ── Split text around ALL code blocks for explanation and results
         # Use a broad pattern that matches any fenced code block
-        parts = re.split(r'```(?:\w*)\s*\n.*?```', text, flags=re.DOTALL)
+        parts = re.split(r'```(?:\w*)\s*\n.*?```', cleaned_text, flags=re.DOTALL)
 
         if len(parts) >= 1 and parts[0].strip():
             components['explanation'] = parts[0].strip()
@@ -195,6 +248,6 @@ class BedrockAgentClient:
                 not components['code'] and
                 not components['results']):
             logger.info("No structured components found; using raw text as explanation")
-            components['explanation'] = text.strip()
+            components['explanation'] = cleaned_text.strip()
 
         return components
