@@ -1,7 +1,7 @@
 """
 DataScout — Dataset Preview Component.
 
-Shows dataset summary metrics and an expandable row preview with column details.
+Shows dataset summary metrics in glassmorphic cards and an expandable row preview.
 """
 
 import pandas as pd
@@ -12,7 +12,7 @@ def render_preview(metadata: dict) -> None:
     """Show dataset summary and optional row preview.
 
     Display:
-        - Compact info bar: filename, rows, columns, size
+        - Compact info bar: filename, rows, columns, size (glassmorphic cards)
         - Expandable preview: first 5 rows as a table
         - Column details: name, type, null count
         - Data quality indicators: missing value warnings
@@ -37,7 +37,7 @@ def render_preview(metadata: dict) -> None:
         if preview_data:
             st.dataframe(
                 pd.DataFrame(preview_data),
-                width="stretch",
+                use_container_width=True,
                 hide_index=True
             )
         else:
@@ -49,7 +49,7 @@ def render_preview(metadata: dict) -> None:
         null_counts = metadata.get('null_counts', {})
 
         if columns:
-            st.subheader("Column Details")
+            st.markdown("**Column Details**")
             col_info = pd.DataFrame({
                 'Column': columns,
                 'Type': [dtypes.get(c, 'unknown') for c in columns],

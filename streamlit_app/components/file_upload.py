@@ -1,7 +1,7 @@
 """
 DataScout — File Upload Component.
 
-Renders a drag-and-drop file upload widget with format and size validation.
+Renders a modern drag-and-drop file upload widget with format and size validation.
 """
 
 from typing import Optional
@@ -25,8 +25,6 @@ def render_upload_widget() -> Optional[UploadedFile]:
     Returns:
         UploadedFile object if a valid file was uploaded, None otherwise.
     """
-    st.subheader("📁 Upload Your Dataset")
-
     # Format the accepted types for display
     format_display = ", ".join(sorted(Config.SUPPORTED_FORMATS))
 

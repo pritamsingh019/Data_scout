@@ -1,7 +1,7 @@
 """
 DataScout — Results Display Component.
 
-Renders analysis results with tabbed views for explanation, data, code, and charts.
+Renders analysis results with modern tabbed views for explanation, data, code, and charts.
 """
 
 import streamlit as st
@@ -25,6 +25,11 @@ def render_results(response: dict) -> None:
             - visualizations (list[str]): S3 URIs of generated charts
             - next_steps (list[str]): Suggested follow-up analyses
     """
+    st.markdown(
+        '<div class="glass-card" style="margin-top:1.5rem;">',
+        unsafe_allow_html=True
+    )
+
     st.subheader("📈 Results")
 
     # Create tabbed view
@@ -77,10 +82,16 @@ def render_results(response: dict) -> None:
         else:
             st.info("No visualizations were generated for this query.")
 
-    # Next steps suggestions
+    st.markdown('</div>', unsafe_allow_html=True)
+
+    # Next steps suggestions as pills
     next_steps = response.get('next_steps', [])
     if next_steps:
-        st.divider()
-        st.caption("**💡 Next Steps:**")
-        for step in next_steps:
-            st.caption(f"  → {step}")
+        pills_html = ''.join(
+            f'<span class="suggestion-pill"><span class="pill-icon">→</span> {step}</span>'
+            for step in next_steps
+        )
+        st.markdown(
+            f'<div class="suggestion-pills" style="margin-top:1rem;">{pills_html}</div>',
+            unsafe_allow_html=True
+        )

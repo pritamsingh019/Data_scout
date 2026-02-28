@@ -1,7 +1,7 @@
 """
 DataScout — Query Input Component.
 
-Renders the natural language query input with contextual suggestions.
+Renders a modern chat-style query input with suggestion pills.
 """
 
 from typing import Optional, List, Dict
@@ -27,24 +27,41 @@ def generate_suggestions(columns: List[str], dtypes: Dict[str, str]) -> List[str
 
     if numeric_cols and categorical_cols:
         suggestions.append(
-            f"What is the average {numeric_cols[0]} by {categorical_cols[0]}?"
+            f"Average {numeric_cols[0]} by {categorical_cols[0]}"
         )
 
     if numeric_cols:
-        suggestions.append(f"Show me the top 10 rows by {numeric_cols[0]}")
-        suggestions.append(f"What is the distribution of {numeric_cols[0]}?")
+        suggestions.append(f"Top 10 by {numeric_cols[0]}")
+        suggestions.append(f"Distribution of {numeric_cols[0]}")
 
     if date_cols and numeric_cols:
         suggestions.append(
-            f"Show me {numeric_cols[0]} trends over {date_cols[0]}"
+            f"Trends over {date_cols[0]}"
         )
 
     if len(numeric_cols) >= 2:
         suggestions.append(
-            f"What is the correlation between {numeric_cols[0]} and {numeric_cols[1]}?"
+            f"Correlation: {numeric_cols[0]} vs {numeric_cols[1]}"
         )
 
     return suggestions[:5]
+
+
+def _render_suggestion_pills(suggestions: List[str]) -> None:
+    """Render suggestion pills as styled HTML."""
+    icons = ["📊", "🔝", "📈", "📉", "🔗"]
+    pills_html = ""
+    for i, s in enumerate(suggestions):
+        icon = icons[i % len(icons)]
+        pills_html += (
+            f'<span class="suggestion-pill">'
+            f'<span class="pill-icon">{icon}</span> {s}'
+            f'</span>'
+        )
+    st.markdown(
+        f'<div class="suggestion-pills">{pills_html}</div>',
+        unsafe_allow_html=True
+    )
 
 
 def render_query_input(dataset_loaded: bool) -> Optional[str]:
@@ -56,14 +73,12 @@ def render_query_input(dataset_loaded: bool) -> Optional[str]:
     Returns:
         The user's query string, or None if no query was submitted.
     """
-    st.subheader("💬 Ask a Question")
-
     if not dataset_loaded:
-        st.text_input(
-            "Your question",
-            placeholder="Upload a dataset first to get started...",
-            disabled=True,
-            key="query_input_disabled"
+        st.markdown(
+            '<div class="glass-card" style="text-align:center; padding:2rem;">'
+            '<p style="color: var(--ds-text-muted); margin:0;">📁 Upload a dataset above to get started</p>'
+            '</div>',
+            unsafe_allow_html=True
         )
         return None
 
@@ -75,21 +90,22 @@ def render_query_input(dataset_loaded: bool) -> Optional[str]:
             metadata.get('dtypes', {})
         )
         if suggestions:
-            st.caption("💡 **Suggestions:** " + " • ".join(suggestions))
+            _render_suggestion_pills(suggestions)
 
-    # Query input
-    query = st.text_input(
+    # Query input — chat-style text area
+    query = st.text_area(
         "Your question",
-        placeholder="e.g., What is the average revenue by region?",
+        placeholder="Describe what you want to analyze...",
         key="query_input",
         max_chars=500,
+        height=100,
         label_visibility="collapsed"
     )
 
-    # Submit button
-    col1, col2 = st.columns([6, 1])
+    # Submit button — right-aligned
+    col1, col2 = st.columns([5, 1])
     with col2:
-        submitted = st.button("🔍 Ask", type="primary", width="stretch")
+        submitted = st.button("🚀 Analyze", type="primary", use_container_width=True)
 
     if submitted and query and query.strip():
         return query.strip()

@@ -23,6 +23,7 @@ from datetime import datetime, UTC
 from config import Config
 from services.bedrock_client import BedrockAgentClient
 from services.s3_handler import S3Handler
+from services.dynamodb_handler import DynamoDBHandler
 from components.file_upload import render_upload_widget
 from components.query_input import render_query_input
 from components.results_display import render_results
@@ -51,6 +52,33 @@ css_path = Path(__file__).parent / "assets" / "styles.css"
 if css_path.exists():
     with open(css_path) as f:
         st.markdown(f"<style>{f.read()}</style>", unsafe_allow_html=True)
+
+
+def render_hero() -> None:
+    """Render the modern hero section with badge, gradient title, and subtitle."""
+    st.markdown("""
+    <div class="hero-container">
+        <div class="hero-badge">
+            <span class="dot"></span>
+            DataScout Project
+        </div>
+        <div class="hero-title">Autonomous Data Intelligence</div>
+        <div class="hero-subtitle">
+            Upload your datasets, ask natural-language questions, and get
+            instant insights powered by Amazon Nova Pro
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
+
+
+def render_footer() -> None:
+    """Render the modern footer with gradient branding."""
+    st.markdown("""
+    <div class="app-footer">
+        <span class="footer-brand">DataScout</span> v1.0 &nbsp;·&nbsp;
+        Powered by Amazon Nova Pro on Amazon Bedrock
+    </div>
+    """, unsafe_allow_html=True)
 
 
 def initialize_session() -> None:
@@ -83,11 +111,10 @@ def main() -> None:
     # Initialize services
     bedrock = BedrockAgentClient()
     s3 = S3Handler()
+    dynamodb = DynamoDBHandler()
 
-    # ── Header ────────────────────────────────────────────────────────────
-    st.title("🔬 DataScout")
-    st.caption("Autonomous Enterprise Data Analyst • Powered by Amazon Nova Pro")
-    st.divider()
+    # ── Hero Section ──────────────────────────────────────────────────────
+    render_hero()
 
     # ── Section 1: File Upload ────────────────────────────────────────────
     uploaded_file = render_upload_widget()
@@ -118,13 +145,23 @@ def main() -> None:
 
                 st.success(f"✅ Dataset loaded: **{metadata['filename']}** — "
                            f"{metadata['rows']:,} rows, {len(metadata['columns'])} columns")
+
+                # Persist session to DynamoDB
+                dynamodb.save_session(
+                    st.session_state.session_id,
+                    {
+                        'dataset_loaded': True,
+                        'filename': metadata['filename'],
+                        'rows': metadata['rows'],
+                        'num_columns': len(metadata['columns']),
+                    }
+                )
             except Exception as e:
                 handle_error(e)
 
     # ── Section 2: Dataset Preview ────────────────────────────────────────
     if st.session_state.dataset_loaded:
         render_preview(st.session_state.dataset_metadata)
-        st.divider()
 
     # ── Section 3: Query Input ────────────────────────────────────────────
     query = render_query_input(st.session_state.dataset_loaded)
@@ -161,6 +198,15 @@ def main() -> None:
                     query, execution_time, True
                 )
 
+                # Persist to DynamoDB
+                dynamodb.save_query(
+                    session_id=st.session_state.session_id,
+                    query=query,
+                    response=response,
+                    execution_time_ms=execution_time,
+                    success=True,
+                )
+
             except Exception as e:
                 handle_error(e)
                 log_query_execution(
@@ -178,7 +224,7 @@ def main() -> None:
 
     # ── Section 5: Conversation History ───────────────────────────────────
     if len(st.session_state.conversation_history) > 1:
-        st.divider()
+        st.markdown("---")
         st.subheader("📜 Query History")
         for i, entry in enumerate(
             reversed(st.session_state.conversation_history[:-1]), 1
@@ -189,8 +235,7 @@ def main() -> None:
                 render_results(entry['response'])
 
     # ── Footer ────────────────────────────────────────────────────────────
-    st.divider()
-    st.caption("DataScout v1.0 • Powered by Amazon Nova Pro on Amazon Bedrock")
+    render_footer()
 
 
 if __name__ == '__main__':

@@ -27,6 +27,13 @@ class Config:
     CODE_EXECUTION_TIMEOUT: int = 30  # seconds
     MAX_CONCURRENT_QUERIES: int = int(os.getenv('MAX_CONCURRENT_QUERIES', '5'))
 
+    # ── DynamoDB ──────────────────────────────────────────────────────────────
+    DYNAMODB_TABLE: str = os.getenv('DYNAMODB_TABLE', 'datascout-queries')
+    ENABLE_DYNAMODB: bool = os.getenv('ENABLE_DYNAMODB', 'true').lower() == 'true'
+
+    # ── API Gateway ───────────────────────────────────────────────────────────
+    API_GATEWAY_URL: str = os.getenv('API_GATEWAY_URL', '')
+
     # ── Feature Flags ─────────────────────────────────────────────────────────
     ENABLE_VISUALIZATIONS: bool = True
     ENABLE_ADVANCED_STATS: bool = True

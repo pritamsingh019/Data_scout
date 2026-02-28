@@ -125,9 +125,11 @@ streamlit run streamlit_app/app.py
 | **Frontend** | Streamlit (Python) | Rapid data-app interface |
 | **Hosting** | AWS App Runner | Serverless, auto-scaling |
 | **AI Engine** | Amazon Bedrock Agents | Managed agent orchestration |
-| **LLM** | Claude 3.5 Sonnet | Code generation & reasoning |
+| **LLM** | Amazon Nova Pro | Code generation & reasoning |
 | **Code Execution** | Bedrock Code Interpreter | Secure Python sandbox |
 | **Storage** | Amazon S3 | Encrypted dataset storage |
+| **Database** | Amazon DynamoDB | Query history & session persistence |
+| **REST API** | AWS Lambda + API Gateway | Serverless API layer |
 | **Security** | AWS IAM | Least-privilege access control |
 | **Monitoring** | CloudWatch | Logging, metrics, audit trails |
 | **IaC** | CloudFormation | Infrastructure as Code |
@@ -231,9 +233,12 @@ Data_scout/
 │   ├── app.py                   #    Main Streamlit entry point
 │   ├── config.py                #    Environment config loader
 │   ├── components/              #    UI widgets (upload, query, results, preview)
-│   ├── services/                #    AWS integrations (Bedrock, S3, sessions)
+│   ├── services/                #    AWS integrations (Bedrock, S3, DynamoDB, sessions)
 │   ├── utils/                   #    Helpers (logging, errors, formatters)
 │   └── assets/                  #    Custom CSS styling
+├── lambda_function/             # ⚡ AWS Lambda REST API
+│   ├── handler.py               #    Lambda handler (analyze, health, history)
+│   └── requirements.txt         #    Lambda-specific dependencies
 ├── demo/                        # 🎬 Demo assets
 │   ├── datasets/                #    Pre-built sample data
 │   └── demo_script.md           #    Step-by-step demo guide
@@ -279,6 +284,13 @@ S3_BUCKET=datascout-storage
 BEDROCK_AGENT_ID=<your-agent-id>
 BEDROCK_AGENT_ALIAS_ID=<your-alias-id>
 
+# DynamoDB (query history)
+DYNAMODB_TABLE=datascout-queries
+ENABLE_DYNAMODB=true
+
+# API Gateway (set after CloudFormation deploy)
+API_GATEWAY_URL=
+
 # Application Settings
 DEBUG=false
 LOG_LEVEL=INFO
@@ -313,6 +325,7 @@ MAX_CONCURRENT_QUERIES=5
 | [User Guide](Docs/guide.md) | End-user guide with query tips |
 | [Setup Guide](Docs/setup.md) | Installation & configuration steps |
 | [Deployment Guide](Docs/deployment.md) | Production deployment on AWS |
+| [AWS Infrastructure Guide](Docs/aws_infrastructure_guide.md) | Beginner-friendly setup of all 9 AWS services |
 | [Switching to Real Data](Docs/switching_to_real_data.md) | Demo → production migration |
 | [Hackathon Guide](Docs/hackathon_presentation_guide.md) | Presentation guide for AI for Bharat |
 | [Roadmap](Docs/roadmap.md) | 12-month product roadmap |
